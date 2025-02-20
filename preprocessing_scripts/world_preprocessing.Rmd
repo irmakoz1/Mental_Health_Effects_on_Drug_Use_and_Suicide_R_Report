@@ -1,0 +1,229 @@
+---
+title: "maps_data"
+author: "Irmak Ozarslan, Barbara Maier"
+date: "2025-02-01"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "C:\\Users\\irmak\\Desktop\\datascience\\Rbootcamp")
+
+```
+
+```{r}
+library(dplyr)
+library("tidyr")
+library("leaflet")
+library("GGally")
+## Load packages
+library(dplyr)
+library(gt)
+library(ggplot2)
+library(sf)          ## for function st_transform() (geo data fromat)
+library(osmdata)
+library(maptiles)    ## for get_tiles() (background map)
+library(tidyterra)
+library(lattice)
+library(nlme)
+library(knitr)
+library(ggplot2)
+library(checkmate)
+library(Hmisc)
+library(contrast)
+library(effects)
+library(MCMCglmm)
+library(languageR) 
+library(lmerTest)
+library(coefplot)
+library(stats)
+library(curl)
+library(data.table)
+library(car)
+library(phia)
+library(MuMIn)
+library(simr)
+library(arm)
+library(devtools)
+library(rstatix)
+library(spData)
+library(leaflet)
+library(giscoR)
+
+```
+
+
+##Maps:
+```{r}
+data<-read.csv("merged_data_last.csv")
+```
+
+```{r}
+world<-world
+```
+
+
+```{r}
+drops <- c("ID_Country_Year","X")
+data <- data[, !(names(data) %in% drops)]
+
+```
+
+```{r}
+world$name_long[world$name_long=="Russian Federation"]<-"Russia"
+world$name_long[world$name_long=="Republic of Korea"]<-"South Korea"
+world$name_long[world$name_long=="Dem. Rep. Korea"]<-"North Korea"
+world$name_long[world$name_long=="Czech Republic"]<-"Czechia"
+world$name_long[world$name_long=="Democratic Republic of the Congo"]<-"Congo"
+
+#str(mutate(world,name_long= recode(name_long,"Russian Federation"="Russia","Republic of Korea"="South Korea"
+#,"Dem. Rep. Korea
+#"="North Korea","Czech Republic
+#"="Czechia","Republic of the Congo
+#"="Congo")))
+
+wld_jn <- left_join(world, data, by = c("region_un"="Continent", "name_long" = 'Country.Name'))
+#congo,russia,south korea,north korea,Czechia
+
+wld_jn<-wld_jn[!is.na(wld_jn$opioiddeathp),]
+
+
+```
+
+###Add year if there is country but no year:
+
+```{r}
+
+A<-which(wld_jn$name_long=="Greenland")
+B<-which(wld_jn$name_long=="Puerto Rico
+")
+C<-which(wld_jn$name_long=="Palestine")
+t<-1999
+for (i in A) {
+  wld_jn$Year[i]<-t+1
+  t<-t+1
+} 
+
+for (i in B) {
+  wld_jn$Year[i]<-t+1
+  t<-t+1
+} 
+
+for (i in C) {
+  wld_jn$Year[i]<-t+1
+  t<-t+1
+} 
+write_sf(wld_jn,"wld_jn.shp")
+
+```
+ ##now maps:
+ ##### we use the “viridis” colorblind-friendly palette for the color gradient (with option = "plasma" for the plasma variant)
+ 1-Bipolar:
+```{r}
+wld_jn %>%
+  group_by(name_long) %>%
+  summarise(BipTot = mean(Bipolar_DisorderRates)) %>%
+  ggplot() +
+  geom_sf(aes(fill = BipTot)) +
+  labs(fill = "Bipolar Disorder Rates") +
+  ggtitle("Bipolar Disorder Rates by Country", subtitle = paste0("(", length(unique(world$name_long)), " countries)"))+
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+
+```
+
+##Scz:
+```{r}
+wld_jn %>%
+  group_by(continent) %>%
+  summarise(SchzTot = mean(SchizophreniaRates)) %>%
+  ggplot() +
+  geom_sf(aes(fill = SchzTot)) +
+  #geom_point(aes(x=long, y=lat, size=pop), color="#AD655F") 
+  labs(fill = "Schizophrenia Rates") +
+  ggtitle("Schizophrenia Rates by Continent", subtitle = paste0("(", length(unique(world$name_long)), " countries)"))+
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+
+```
+```{r}
+wld_jn %>%
+  group_by(name_long) %>%
+  summarise(depTot = mean(Depressive_DisorderRates)) %>%
+  ggplot() +
+  geom_sf(aes(fill = depTot)) +
+  #geom_point(aes(x=long, y=lat, size=pop), color="#AD655F") 
+  labs(fill = "Depression Disorder Rates (%)") +
+  ggtitle("Depression disorder Rates by Country", subtitle = paste0("(", length(unique(world$name_long)), " countries)"))+
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+
+```
+ 
+```{r}
+wld_jn %>%
+  group_by(name_long) %>%
+  summarise(anxTot = mean(Anxiety_DisorderRates)) %>%
+  ggplot() +
+  geom_sf(aes(fill = anxTot)) +
+  #geom_point(aes(x=long, y=lat, size=pop), color="#AD655F") 
+  labs(fill = "Anxiety Disorder Rates (%)") +
+  ggtitle("Anxiety disorder Rates by Country", subtitle = paste0("(", length(unique(world$name_long)), " countries)"))+
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+
+```
+```{r}
+wld_jn %>%
+  group_by(name_long) %>%
+  summarise(eatTot = mean(Eating_DisorderRates)) %>%
+  ggplot() +
+  geom_sf(aes(fill = eatTot)) +
+  #geom_point(aes(x=long, y=lat, size=pop), color="#AD655F") 
+  labs(fill = "Eating Disorder Rates (%)") +
+  ggtitle("Eating disorder Rates by Country", subtitle = paste0("(", length(unique(world$name_long)), " countries)"))+
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+```
+```{r}
+wld_jn %>%
+  group_by(name_long) %>%
+  summarise(unemploymentTot = mean(unemployment)) %>%
+  ggplot() +
+  geom_sf(aes(fill = unemploymentTot)) +
+  #geom_point(aes(x=long, y=lat, size=pop), color="#AD655F") 
+  labs(fill = "Unemployment Rates (%)") +
+  ggtitle("Unemployment Rates by Country", subtitle = paste0("(", length(unique(world$name_long)), " countries)"))+
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+```
+```{r}
+wld_jn %>%
+  group_by(name_long) %>%
+  summarise(suicTot = mean(suiciderates)) %>%
+  ggplot() +
+  geom_sf(aes(fill = suicTot)) +
+  #geom_point(aes(x=long, y=lat, size=pop), color="#AD655F") 
+  labs(fill = "Suicide Rates (%)") +
+  ggtitle("Suicide Rates by Country", subtitle = paste0("(", length(unique(world$name_long)), " countries)"))+
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+```
+```{r}
+wld_jn %>%
+  group_by(name_long) %>%
+  summarise(opioid = mean(opioiddeathp)) %>%
+  ggplot() +
+  geom_sf(aes(opioid)) +
+    scale_fill_gradient(low = "lightblue", high = "darkred", limits = c(0, max(wld_jn$opioiddeathp)), oob = scales::squish)+
+  #geom_point(aes(x=long, y=lat, size=pop), color="#AD655F") 
+  labs(fill = "Opioid death Rates (%)") +
+  ggtitle("Opioid death Rates by Country", subtitle = paste0("(", length(unique(world$name_long)), " countries)"))+
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+```
+```{r}
+wld_jn %>%
+  group_by(name_long) %>%
+  summarise(across(c(opioiddeathp, cocainedeath, amphdeathp, otherdrugd), mean, na.rm = TRUE), 
+            drugtot = mean(c(opioiddeathp, cocainedeath, amphdeathp, otherdrugd), na.rm = TRUE)) %>%
+  ggplot() +
+  geom_sf(aes(fill = drugtot)) +
+  #geom_point(aes(x=long, y=lat, size=pop), color="#AD655F") 
+  labs(fill = "Drug death Rates (%)") +
+  ggtitle("Drug death Rates by Country", subtitle = paste0("(", length(unique(world$name_long)), " countries)"))+
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+```
+ 

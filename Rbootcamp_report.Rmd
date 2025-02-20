@@ -1,0 +1,1394 @@
+---
+title: '**Report Rbootcamp**'
+author: "Irmak Ozarslan, Barbara Maier"
+date: "2025-01-28"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = TRUE,        # Show code by default
+  results = "show",   # Show outputs normally
+  message = FALSE,    # Hide messages
+  warning = FALSE,    # Hide warnings
+  eval=TRUE
+   # Standard plot height
+)
+
+```
+
+#### **Table of Contents**
+
+##### **1. Introduction**
+
+##### **2. Data**
+
+```         
+ 2.1. Data Source
+ 2.2. Data Description
+```
+
+##### **3. Processing**
+
+```         
+ 3.1 Data Preperation 
+ 3.2.Data Merging
+```
+
+##### **4. Visual Inspection of the given Data**
+
+```         
+ 4.1 Suicide Rates
+ 4.2 Mental Health Rates
+ 4.3 Drug Deaths
+ 4.4 Unemployment
+```
+
+##### **5. Hypothesis / Model Description**
+
+##### **6. Data Analysis**
+
+```         
+ 6.1 Exploratory Analysis
+ 6.1.1 Correlations Summary
+ 6.2 Generalized Linear Model (GLM) 
+ 6.2.1 Model 1
+ 6.2.1.1 Normality Check
+ 6.2.2 Model 2
+ 6.2.2.1 Normality Check
+ 6.2.3 GLMM
+```
+
+##### **7. Results**
+
+```         
+ 7.1 GLM Model for suicide deaths
+ 7.2 GLM Model for drug overdoses
+ 7.3 GLMM
+```
+
+##### **8. Chapter of Choice**
+
+```         
+ 8.1 Interactive Map (Shiny App)
+```
+
+##### **9. Summary and Conclusion**
+
+```         
+ 9.1 Summary
+ 9.2 Conclusions 
+ 9.3 Challenges
+```
+
+\vspace{2cm}
+
+## **1. Introduction**
+
+The primary focus of this work is to explore the process of data analysis and visualization using R. With this goal in mind, we decided to advance our skills in problem solving and user centered visualizations while exploring a topic that has a potential to have a real world impact. Therefore, we selected a topic that aligns with our background in psychology and social sciences.
+
+Suicides remain significant global public health concerns, affecting millions of individuals and their families each year. Understanding the factors that contribute to these issues are crucial for developing effective intervention strategies. By leveraging data from multiple sources, we seek to identify trends, correlations, and possible intervention points that could help mitigate these crises. Substance use disorders are considered to be comorbid with certain mental health conditions. In conditions such as bipolar disorder, substance use is an established risk factor (Lalli et al., 2021). Furthermore, economic difficulties are known to be associated with poor mental health (Junna et al., 2022). Thus, in our study we wanted to explore the relationship between mental health conditions across the world and unemployment, drug deaths and suicide rates to determine its key predictors.
+
+Our research questions are the following :
+
+**Can mental health issues and other factors predict suicide rates?**
+
+**Can we predict mental health conditions from drug deaths and unemployment?**
+
+\vspace{1cm}
+
+## **2. Data**
+
+### **2.1. Data Source**
+
+To compare suicide rates with mental health issues and other contributing factors, we used the following data sources:
+
+1)  World Suicide Rates: <http://ourworldindata.org/suicide>
+2)  World Unemployment Rates: <https://ourworldindata.org/grapher/unemployment-rate> (download of full data)
+3)  World Mental Health Conditions: <https://www.kaggle.com/datasets/imtkaggleteam/mental-health>
+4)  World Drug Overdoses: <https://www.kaggle.com/datasets/programmerrdai/cocaineopioidscannabis-and-illicit-drugs/data?select=deaths-drug-overdoses.csv>
+
+The data were downloaded in .csv format,and each covered different year spans. Common years in 4 datasets included the period from 2000 to 2019. The datasets were retrieved on 28.01.2025.
+
+### **2.2. Description of the Data Source:**
+
+#### **Data 1: Suicide Deaths:**
+
+The data is sourced from Our World in Data, which compiles information from the World Health Organization (WHO).
+
+The dataset includes the age-standardized death rate from self-harm among both sexes. It estimates the number of age-standardized deaths from self-harm per 100,000 people.
+
+Source: World Health Organization (2024) – with significant processing by Our World in Data.
+
+Last Updated: July 30, 2024.
+
+Date Range: 2000–2021, worldwide 
+
+Unit of Measurement: Deaths per 100,000 people.
+
+#### **Data 2: Unemployment:**
+
+The dataset includes the unemployment rate, defined as the percentage of the labor force that is without work but actively seeking and available for employment.
+
+Source: Multiple sources compiled by World Bank (2025) – processed by Our World in Data 
+
+Last updated: January 24, 2025 
+
+Date range: 1991–2023, worldwide 
+
+Unit modeled ILO estimate
+
+#### **Data 3: Mental Health Disorders:**
+
+The dataset includes percentage of various mental health conditions in most of the countries of the world. The mental health conditions covered are: Schizophrenia, Bipolar Disorder, Depressive Disorder, Eating Disorder, Anxiety Disorder.
+
+Source: Kaggle, Ourworldindata
+
+Last updated: 2023 
+
+Date range: 1990–2019, worldwide 
+
+Unit of Measurement: Share of population, age-sex standardized
+
+#### **Data 4: Drug Overdoses:**
+
+The dataset includes absolute rates of drug overdose deaths in most of the countries of the world. The substances covered are: Cocaine, opioids, amphetamines, other drugs.
+
+Source: Kaggle, Ourworldindata 
+
+Last updated: 2022
+
+Date range: 1990–2019, worldwide 
+
+Unit of Measurement: Share of population, age-sex standardized
+
+\vspace{3cm}
+
+## **3. Data Processing**
+
+### **3.1 Data Preperation**
+
+We began by cleaning each table individually in R. 
+
+-Please check the script, preprocessing_data for detailed code.
+
+**Steps taken in all the tables:**
+
+-   Reading in Data
+-   Removing missing Values (NAs)
+-   Filtering the Years 2000 - 2019 and assuring it is integer
+-   Name matching of Country.Name and Year columns
+-   Rename Columns for Simplicity
+-   Dropping unnecessary columns
+-   Saving the modified table in an output file
+
+**Steps taken in specific tables:**
+
+-   Calculating percentages from absolute numbers divided by population for table 4 (Drug Overdoses)
+
+### **3.2 Data Merging**
+
+-   Merging all the 4 tables was done with the Columns Year and Country.Name
+
+-   We did visual inspection of Country.Name in different datasets, if not matched it was standardized. However, since all datasets are based on ourworldindata, the Country.Name's were identical and there were missing columns only due to missing data and not mismatch of names.
+
+-   Creating a new Column "Continents".
+
+    Below you can see a code snippet of merging the 4 datasets:
+
+```{r, echo=FALSE, results="hide", message=FALSE, warning=FALSE}
+# Load all the necessary packages
+library(countrycode)
+library(dplyr)
+library(ggplot2)
+library(magrittr)
+library(readr)
+library(rmarkdown)
+library(tidyr)
+library(tidyverse)
+library(tinytex)
+library(knitr)
+library(shiny)
+library(leaflet)
+library(sf)
+library(dplyr)
+library(scales)
+library("GGally")
+library(contrast)
+library(effects)
+library(MCMCglmm)
+library(languageR) 
+library(lmerTest)
+library(coefplot)
+library(stats)
+library(curl)
+library(data.table)
+library(car)
+library(phia)
+library(MuMIn)
+library(spData)
+library(gridExtra)
+library(gt)
+library(countrycode)
+library(glmmTMB)
+
+```
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+#Merging and refining all 4 tables
+suicide<-read.csv("processed_data/suicide_processed.csv")
+unemployment<-read.csv("processed_data/unemployment_processed.csv")
+mental_health<-read.csv("processed_data/MH_processed.csv")
+drugdeaths<-read.csv("processed_data/drugdeats_processed1.csv")
+# Make sure Year is numeric:
+suicide$Year<-as.integer(suicide$Year)
+unemployment$Year<-as.integer(unemployment$Year)
+drugdeaths$Year<-as.integer(drugdeaths$Year)
+mental_health$Year<-as.integer(mental_health$Year)
+
+```
+
+```{r, echo=TRUE,message=FALSE, warning=FALSE}
+#Merge the 4 tables:
+
+new_table <- mental_health %>%  
+    full_join(suicide, by = c("Country.Name","Year")) %>%  
+    full_join(unemployment, by = c("Country.Name","Year")) %>%  
+    full_join(drugdeaths, by = c("Country.Name","Year")) 
+
+#write.csv(new_table,"new_data_merged.csv")
+```
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+#Last processing , dropping the columns we dont need, clean NA's:
+drops<- c("Code","X.x","X.y","Code.x","Code.y")
+new_table <- new_table[, !(names(new_table) %in% drops)]
+
+#Create a new Column "Continent" using package "countrycode":
+new_table$Continent <- countrycode(new_table$Country.Name, 
+                                   origin = "country.name", 
+                                   destination = "continent")
+
+#Remove Missing Values (NAs and 0 values):
+
+if (sum(is.na(new_table)) > 0) {
+  new_table <- new_table %>% drop_na()
+  print("Cleaned the dataset of NA values")
+} else {
+  print("No NA values found.")
+}
+```
+### **4. Visual Inspection of given Data**
+
+#### **4.1 Suicide Rates**
+```{r, echo=FALSE, fig.align="center",fig.height=27,fig.width=9,warning=FALSE,message=FALSE}
+
+
+# Plot the heatmap
+ggplot(new_table, aes(x = Year, y = Country.Name, fill = suiciderates)) +
+    geom_tile() +
+    scale_fill_gradient(low = "white", high = "red", na.value = "grey") +  # Handle missing values as grey
+    labs(
+        title = "Suicide Rates Heatmap by Country and Year",  
+        x = "Year",
+        y = "Country",
+        fill = "Suicide Rate"
+    ) +
+    theme_minimal() +
+    theme(
+        axis.text.x = element_text(angle = 90, hjust = 1),  # Rotate x-axis labels
+        axis.text.y = element_text(size = 16),  # Reduce font size for country names
+        legend.position = "bottom"  # Position the legend at the bottom
+    )
+        plot.title = element_text(size = 20, face = "bold", hjust = 0.5)  # Change title size, bold, and center it
+
+```
+\vspace{3cm}
+
+### **Suicide Rates Heat Map Analysis**
+
+This heatmap visualizes suicide rates across different countries from 2000 to 2019. Each row represents a country, while each column represents a year. The intensity of the red color indicates the suicide rate, with darker shades representing higher rates.
+
+### **Countries with High Suicide Rates**
+
+-   **Lithuania & Russia:** These countries show consistently high suicide rates throughout the years, with dark red shades dominating their rows. Lithuania, in particular, remains one of the countries with the highest suicide rates.
+
+### **Countries with Notable Trends**
+
+-   **South Korea (2003-2010):** The suicide rate appears to increase significantly during this period before stabilizing. This aligns with known economic and societal pressures in the country.
+
+-   **Guyana & Suriname:** These South American nations exhibit high suicide rates compared to their regional counterparts, making them outliers in the continent.
+
+-   **Ukraine & Russia (2014 Onwards):** A visible trend of increased suicide rates in this period may be linked to geopolitical and economic instability.
+
+### **Countries with Lower Suicide Rates**
+
+-   Several countries, particularly in the **Middle East and some African nations**, show consistently lighter shades, indicating relatively low suicide rates.\
+-   **Saudi Arabia** and **Kuwait**, for instance, have very light colors throughout the timeline, suggesting comparatively low suicide rates.
+-   **Afghanistan & Pakistan:** These countries also show relatively low reported suicide rates, though underreporting due to cultural stigma may be a contributing factor.
+
+\vspace{2cm}
+
+```{r, echo=FALSE, fig.align="center",fig.width = 6,fig.height = 4,warning=FALSE,message=FALSE }
+
+#Aggregate the data to obtain a single value for each year and continent, then create a #visualization to display the suicide rates by continent.
+
+#Calculate the mean suicide rates per year and continent
+mean_suicide_rates <- new_table %>%
+  group_by(Year, Continent) %>%
+  summarise(mean_suiciderate = mean(suiciderates, na.rm = TRUE))
+
+#Create the line plot
+ggplot(data = mean_suicide_rates, aes(x = Year, y = mean_suiciderate, color = Continent, group = Continent)) +
+  geom_line(linewidth = 1) +  # Line for each continent
+  labs(title = "Average Suicide Rates Over Time by Continent", 
+       x = "Year", 
+       y = "Average Suicide Rates") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+### **Description:**
+
+This line chart visualizes the trends in average suicide rates across different continents from the year 2000 to 2019. Each colored line corresponds to a different continent.
+
+### **Key Insights**
+
+-   **Europe** (blue) had the highest suicide rates but showed a strong decline.
+
+-   **Africa, Asia, and Oceania** had relatively stable trends around 12 for 100,000 people.
+
+-   **The Americas** (green) had the lowest rates with a slight decrease.
+
+\vspace{2cm}
+
+```{r, echo=FALSE, fig.align="center",fig.width = 6,fig.height = 4 }
+
+#Suicide rates of single countries, with highest suicide rates:
+#Calculate the mean suicide rate for each country
+top_5_countries <- new_table %>%
+    group_by(Country.Name) %>%
+    summarise(mean_suicide_rate = mean(suiciderates, na.rm = TRUE)) %>%
+    top_n(5, mean_suicide_rate) %>%
+    pull(Country.Name)  # Get the names of the top 5 countries
+
+#Filter the dataset to include only the top 5 countries
+end_data_filtered <- new_table %>%
+    filter(Country.Name %in% top_5_countries)
+
+#Create the line plot
+ggplot(data = end_data_filtered, aes(x = Year, y = suiciderates, color = Country.Name, group = Country.Name)) +
+    geom_line(linewidth = 1) +  # Lines for each country
+    labs(title = "Suicide Rates Over Time (Top 5 Countries)", 
+        x = "Year", 
+        y = "Suicide Rates") +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+```
+
+### **Description:**
+
+This line chart illustrates the suicide rates of the **top five countries** with the highest recorded suicide rates from **2000 to 2019**. The x-axis represents the years, while the y-axis shows the suicide rates per 100,000 people. Each colored line corresponds to a different country.
+
+### **Key Insights**
+
+-   **Russia** (purple) had the highest suicide rates initially but showed a strong decline.
+
+-   **Lithuania** (blue) and **Kazakhstan** (yellow-green) also exhibited decreasing trends.
+
+-   **Lesotho** (green) experienced an increase over time, surpassing some other countries.
+
+-   **Guyana** (red) remained relatively stable but had a slight decrease in recent years.
+
+\vspace{2cm}
+
+
+### **4.2 Mental Health Percentages**
+
+```{r, echo=FALSE, fig.align="center", fig.width = 8,fig.height = 5}
+
+#Average Mental Health Rates Over the Years by Continent
+
+# Convert data to long format and group by Continent
+mental_health_long <- new_table %>%
+  select(Year, Continent, SchizophreniaRates, Depressive_DisorderRates, Anxiety_DisorderRates, Bipolar_DisorderRates, Eating_DisorderRates) %>%
+  pivot_longer(cols = -c(Year, Continent), names_to = "Disorder", values_to = "Rate") %>%
+  group_by(Year, Continent, Disorder) %>%
+  summarise(mean_rate = mean(Rate, na.rm = TRUE), .groups = "drop")  # Calculate the average per continent
+
+# Line plot with facets for each continent
+ggplot(mental_health_long, aes(x = Year, y = mean_rate, color = Disorder, group = Disorder)) +
+  geom_line(linewidth = 1) +   
+  geom_point() +
+  facet_wrap(~Continent) +  # Separate plots for each continent
+  labs(title = "Average Mental Health Rates Over the Years by Continent",
+       x = "Year", y = "Average Rate") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+### **Description:**
+
+This line chart visualizes the trends in **average mental health disorder rates** across different continents from the year **2000 to 2019**. The x-axis represents the **years**, while the y-axis shows the **average disorder rates** per 100,000 people. Each colored line corresponds to a different mental health disorder:
+
+-   **Anxiety Disorders (Red)**\
+-   **Bipolar Disorders (Yellow)**\
+-   **Depressive Disorders (Green)**\
+-   **Eating Disorders (Blue)**\
+-   **Schizophrenia (Purple)**
+
+The chart is divided into six panels, each representing a **continent**: **Africa, America (South - and North America), Asia, Europe, Oceania (mostly Australia).**
+
+### **General Trends**
+
+-   **Anxiety and depressive disorders** are the most prevalent mental health conditions across all continents.
+
+-   **Bipolar disorder, eating disorders, and schizophrenia** show much lower rates compared to anxiety and depressive disorders.
+
+-   Most continents show **relatively stable trends** over time, with **small increases or decreases** in specific disorders.
+
+### **Specific Insights**
+
+-   **Europe** shows a slight **decrease in depressive disorders**, while **anxiety disorder rates have slightly increased** over time.
+
+-   **Africa, Asia, and the Americas** display **consistent trends** without significant deviations, suggesting stable reporting or prevalence of disorders in these regions.
+
+\vspace{2cm}
+
+### **4.3 Drug Overdoses**
+
+```{r, echo=FALSE, fig.align="center", fig.width = 8,fig.height = 6,message=FALSE,warning=FALSE}
+
+#Average Drug Death Rates by Continent Over the Years
+
+# Convert data to long format and group by continent
+drug_death_long <- new_table %>%
+  select(Year, Continent, opioiddeathp, cocainedeath, amphdeathp, otherdrugd) %>%
+  pivot_longer(cols = -c(Year, Continent), names_to = "Drug_Type", values_to = "Death_Rate") %>%
+  group_by(Year, Continent, Drug_Type) %>%
+  summarise(mean_death_rate = mean(Death_Rate, na.rm = TRUE), .groups = "drop")  # Calculate the average per continent
+
+# Line plot with facets for each continent
+ggplot(drug_death_long, aes(x = Year, y = mean_death_rate, color = Drug_Type, group = Drug_Type)) +
+  geom_line(linewidth = 1) +   
+  geom_point() +
+  facet_wrap(~Continent) +  # Separate plots for each continent
+  labs(title = "Average Drug Death Rates by Continent Over the Years",
+       x = "Year", y = "Average Death Rate") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+### **Description:**
+
+This line chart visualizes the trends in **average drug-related death rates** across different continents from the year **2000 to 2019**. The x-axis represents the **years**, while the y-axis shows the **average drug death rates** per 100,000 people. Each colored line corresponds to a different type of drug-related death:
+
+-   **Amphetamine-related deaths (Red)**\
+-   **Cocaine-related deaths (Green)**\
+-   **Opioid-related deaths (Blue)**\
+-   **Other drug-related deaths (Purple)**
+
+### **General Trends**
+
+-   **Opioid-related deaths** (blue line) are the most prevalent across all continents, particularly in **the Americas and Europe**.
+
+-   **Cocaine, amphetamine, and other drug-related deaths** show significantly lower rates compared to opioid-related deaths.
+
+-   **Most continents display relatively stable trends**, but some regions exhibit noticeable fluctuations.
+
+### **Specific Insights**
+
+-   **The Americas show a steady rise in opioid-related deaths**, particularly after **2010**, indicating an increasing opioid crisis.
+
+-   **Europe has consistently high opioid-related death rates**, with **small fluctuations over time**.
+
+-   **Oceania exhibits a little decline in drug-related deaths**, particularly in **opioid related deaths**, possibly due to policy changes, public health interventions, or data collection modifications.
+
+-   **Africa and Asia** show **minimal variation** in drug death rates, remaining at consistently low levels.
+
+\vspace{2cm}
+
+```{r, echo=FALSE, fig.align="center", fig.width = 6,fig.height = 4,message=FALSE,warning=FALSE}
+
+# Step 1: Calculate the mean drug death rates per year and continent
+mean_drug_deaths <- new_table %>%
+  # Create a new column that sums up the drug death rates for each year and continent
+  mutate(total_drug_deaths = opioiddeathp + cocainedeath + amphdeathp + otherdrugd) %>%
+  group_by(Year, Continent) %>%
+  summarise(mean_drug_death_rate = mean(total_drug_deaths, na.rm = TRUE))
+
+# Step 2: Create the line plot
+ggplot(data = mean_drug_deaths, aes(x = Year, y = mean_drug_death_rate, color = Continent, group = Continent)) +
+  geom_line(linewidth = 1) +  # Line for each continent
+  labs(title = "Average Drug Death Rates Over Time by Continent", 
+       x = "Year", 
+       y = "Average Drug Death Rates") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+### **Description:**
+
+This line chart visualizes the trends in **average drug-related death rates** across different continents from the year **2000 to 2019**. The x-axis represents the **years**, while the y-axis shows the **average drug death rates** per 100,000 people. Each colored line corresponds to a different continent:
+
+### **General Trends**
+
+-   **Europe (Blue Line)** shows relatively high and **stable drug death rates**, with a **slight increase after 2010**.
+
+-   **The Americas (Yellow-Green Line)** show a law rate, but exhibit a **steady increase** in drug-related deaths over time.
+
+-   **Oceania (Purple Line) and Asia (green Line)** had the **show steady low drug death rates**
+
+-   **Africa (Red Line)** has the **lowest drug death rates**, with only minimal variations.
+
+\vspace{2cm}
+
+### **4.4 Unemployment**
+
+```{r, echo=FALSE, fig.align="center", fig.width = 6,fig.height = 4}
+
+#Average Unemployment Rate by Continent Over the Years
+
+# Calculate the average unemployment rate per continent and year
+unemployment_trend <- new_table %>%
+  group_by(Year, Continent) %>%
+  summarise(mean_unemployment = mean(unemployment, na.rm = TRUE), .groups = "drop")
+
+# Line plot with facets for each continent
+ggplot(unemployment_trend, aes(x = Year, y = mean_unemployment, color = Continent, group = Continent)) +
+  geom_line(linewidth = 1) +   
+  geom_point() +
+  facet_wrap(~Continent) +  # Separate plots for each continent
+  labs(title = "Average Unemployment Rate by Continent Over the Years",
+       x = "Year", y = "Average Unemployment Rate") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+### **Description:**
+
+This line chart visualizes the trends in the **average unemployment rate** across different continents from the year **2000 to 2019**. The x-axis represents the **years**, while the y-axis shows the **average unemployment rate in percentage**. Each colored line corresponds to a different continent:
+
+### **General Trends**
+
+-   **Africa (Red Line)** shows a **significant decline in unemployment rates** from **over 12% in 2000 to around 8%** in recent years, though it stabilizes after 2010.\
+-   **The Americas (Yellow-Green Line)** exhibit a **declining trend until 2010**, after which the rates fluctuate but remain relatively stable.\
+-   **Asia (Teal Line)** has the **lowest and most stable unemployment rates**, with only minor fluctuations over time.\
+-   **Europe (Blue Line)** shows **major fluctuations**, with **an increase in unemployment around 2010**, followed by a **steady decline after 2015**.\
+-   **Oceania (Purple Line)** displays a **gradual decrease** in unemployment, though there are **minor spikes** around 2010.
+
+### **Specific Insights**
+
+-   The **sharp decline in Africa’s unemployment rate** suggests **improved labor market conditions** but may also be influenced by **changes in economic policies, population growth, or data reporting**.\
+-   **Europe experienced a noticeable rise in unemployment around 2010**, likely due to the **global financial crisis**, but saw a **recovery after 2015**.\
+-   **The Americas’ fluctuating trend** could be linked to **economic cycles and labor market policies** in different countries.\
+-   **Asia’s low unemployment rates** indicate **greater economic stability or lower official unemployment reporting**.\
+-   **Oceania’s temporary spikes around 2010** may reflect **regional economic downturns or policy changes**.
+
+\vspace{4cm}
+
+
+## 5. **Hypothesis:**
+
+This study investigates the relationship between mental health issues, unemployment rates, with suicide rates and drug-related deaths across countries over the past 19 years.These variables are measured as the percentage of the population, across most of the countries in the world, from the years 2000 to 2019.
+
+ The final dataset includes the following variables:
+
+-   Schizophrenia Rates
+-   Depressive Disorder Rates
+-   Anxiety Disorder Rates
+-   Bipolar Disorder Rates
+-   Eating Disorder Rates
+-   Unemployment Rates
+-   Suicide Rates
+-   Opioid Death Rates
+-   Cocaine Death Rates
+-   Amphetamine Death Rates
+-   Other Drug Death Rates
+-   Total Drug Deaths
+
+#### **Hypothesis 1:** We would expect that higher the mental health disorder percentages and unemployment, there will be higher suicide rates.
+
+#### **Hypothesis 2:** We would expect to find a positive relationship between mental health conditions, drug overdoses and unemployment.
+
+### **5.1 Model Descriptions:**
+
+Given that we are analyzing multiple predictors simultaneously, we expand the analysis using a generalized linear model (GLM). GLMs allow us to have flexibility in our analysis and model the relationships between the predictor and response variables while accounting for non-normal distributions or complex interactions between predictors.
+
+To address the first hypothesis, we model the relationship between suicide rates and a range of predictors such as unemployment rates, mental health disorder rates. The GLM equation for suicide rates in relation to multiple predictors is specified as: $$
+\begin{aligned}
+\text{Suicide Rates}_i &= \boldsymbol{\beta_0} + \boldsymbol{\beta_1} (\text{Schizophrenia Rates}_i) + \\
+&\quad \boldsymbol{\beta_2} (\text{Depressive Disorder Rates}_i) + \\
+&\quad \boldsymbol{\beta_3} (\text{Anxiety Disorder Rates}_i) + \\
+&\quad \boldsymbol{\beta_4} (\text{Unemployment Rates}_i) + \\ +\boldsymbol{\epsilon_i}
+\end{aligned}
+$$
+
+Where:
+
+Suicide Rates are the dependent variable (the rate of suicide in country$_i$
+
+Schizophrenia Rates, Depressive Disorder Rates, Anxiety Disorder Rates, Unemployment Rates are the independent variables.
+
+-   $\beta_0$ is the intercept term
+
+-   $\beta_1$, $\beta_2$... $\beta_7$ are the coefficients representing how each predictor (e.g., schizophrenia rates, unemployment) affects suicide rates
+
+-   $\epsilon_i$ is the error term.
+
+    To address the third hypothesis, we model the relationship between drug overdoses, unemployment rates, mental health disorder rates. The GLM equation for drug overdoses in relation to multiple predictors is specified as:
+
+$$
+\begin{aligned}
+\text{Total Drug Overdoses}_i &= \boldsymbol{\beta_0} + \boldsymbol{\beta_1} (\text{Schizophrenia Rates}_i) + \\
+&\quad \boldsymbol{\beta_2} (\text{Depressive Disorder Rates}_i) + \\
+&\quad \boldsymbol{\beta_3} (\text{Anxiety Disorder Rates}_i) + \\
+&\quad \boldsymbol{\beta_4} (\text{Unemployment Rates}_i) + \\ +\boldsymbol{\epsilon_i}
+\end{aligned}
+$$
+
+## **6. Data Analysis**
+
+### **6.1 Exploratory Analysis:**
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+#Create a drug overdose total percentage column:
+
+end_data <- new_table %>%
+  mutate(drugtot = opioiddeathp + cocainedeath + amphdeathp + otherdrugd)
+```
+
+```{r,echo=FALSE,fig.width=8,fig.height=5}
+#Check the correlations matrices:
+
+ggpairs(end_data,columns = c("SchizophreniaRates","Depressive_DisorderRates","Anxiety_DisorderRates","Bipolar_DisorderRates", "Eating_DisorderRates","unemployment","suiciderates"),upper = list(continuous = wrap("cor", size = 2.5)))
+
+ggpairs(end_data,columns = c("SchizophreniaRates","Depressive_DisorderRates","Anxiety_DisorderRates","Bipolar_DisorderRates", "Eating_DisorderRates","drugtot"),upper = list(continuous = wrap("cor", size = 2.5)))
+
+#correlation table
+cor(end_data %>% select("SchizophreniaRates","Depressive_DisorderRates","Anxiety_DisorderRates","Bipolar_DisorderRates", "Eating_DisorderRates","drugtot","suiciderates"),use = "pairwise.complete.obs")
+
+```
+
+#### **Description:**
+
+These two graphs are pairwise correlation scatterplot matrix with density plots along the diagonal. It visualizes the relationships between different mental health disorder rates, unemployment and suicide rates in the first scatterplot matrix, and the relationships between different mental health disorder rates, unemployment and total drug overdoses in the second.
+
+**Key Elements in the Image:**
+
+**Diagonal Plots:** These show the density distributions of individual variables such as Schizophrenia Rates, Depressive Disorder Rates, Anxiety Disorder Rates, Bipolar Disorder Rates, Eating Disorder Rates, unemployment and suicide rates in the first scatterplot matrix and total drug deaths instead of suicide rates in the second.
+
+**Lower Triangle Scatterplots**: The black dots represent data points for pairwise comparisons, showing how one variable relates to another.
+
+**Upper Triangle** is showing the Correlation Values. Each cell contains a correlation coefficient (Corr) between two variables.
+
+Values range from -1 to 1 (negative to positive correlation).
+
+Significance levels are marked with asterisks:  (\*) p \< 0.05,(\*\*\*) p \< 0.001 (highly significant correlations).
+
+
+
+\vspace{2cm}
+
+```{r, echo=FALSE, fig.align="center",fig.width = 6,fig.height = 3}
+
+# Prepare the data for correlation calculation
+correlation_data <- end_data %>% 
+  select(SchizophreniaRates, Depressive_DisorderRates, Anxiety_DisorderRates, 
+         Bipolar_DisorderRates, Eating_DisorderRates, unemployment, suiciderates) %>% 
+  pivot_longer(cols = -suiciderates, names_to = "Factor", values_to = "FactorValue")
+
+# Calculate Pearson correlation coefficients for each factor with suiciderates
+correlations <- correlation_data %>%
+  group_by(Factor) %>%
+  summarize(
+    correlation = cor(FactorValue, suiciderates, method = "pearson"),
+    .groups = "drop"
+  )
+
+# Visualize the correlation coefficients
+ggplot(correlations, aes(x = Factor, y = correlation)) +
+  geom_bar(stat = "identity", fill = "skyblue") +  # Bar plot for correlations
+  labs(title = "Pearson Correlation Coefficients for suicide rates",
+       x = "Factors", y = "Correlation Coefficient") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+
+
+```
+
+### **Description:**
+
+This bar chart illustrates the Pearson correlation coefficients between various psychological and socio-economic factors and suicide rates. Pearson's correlation measures the strength and direction\*\* of a linear relationship between two variables, with values ranging from -1 (strong negative correlation) to +1 (strong positive correlation).
+
+```{r,echo=FALSE, fig.width = 6,fig.height = 3,fig.align="center"}
+
+# Prepare the data for correlation calculation
+correlation_data <- end_data %>% 
+  select(SchizophreniaRates, Depressive_DisorderRates, Anxiety_DisorderRates, 
+         Bipolar_DisorderRates, Eating_DisorderRates, unemployment,drugtot) %>% 
+  pivot_longer(cols = -drugtot, names_to = "Factor", values_to = "FactorValue")
+
+# Calculate Pearson correlation coefficients for each factor with drugtot
+correlations <- correlation_data %>%
+  group_by(Factor) %>%
+  summarize(
+    correlation = cor(FactorValue, drugtot, method = "pearson"),
+    .groups = "drop"
+  )
+
+# Visualize the correlation coefficients
+ggplot(correlations, aes(x = Factor, y = correlation)) +
+  geom_bar(stat = "identity", fill = "skyblue") +  # Bar plot for correlations
+  labs(title = "Pearson Correlation Coefficients for total drug overdoses",
+       x = "Factors", y = "Correlation Coefficient") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+
+```
+
+### **Description:**
+
+This bar chart illustrates the Pearson correlation coefficients between various psychological and socio-economic factors and drug death rates. A positive correlation suggests that as the factor increases, drug death rates also tend to rise, whereas a negative correlation indicates an inverse relationship.
+
+Significance levels are marked with asterisks: (\*) p \< 0.05,  (\*\*\*) p \< 0.001 (highly significant correlations).
+
+
+### **6.1.1 Correlations Summary:**
+
+1.  Schizophrenia rates and Unemployment have small positive correlations, indicating a mild relationship with suicide rates.
+
+2.  There is a moderate negative correlation between schizophrenia rates and depressive disorder rates. This suggests, Schizophrenia and depression seem to occur in different populations.
+
+3.  There is a strong positive correlation between anxiety disorder rates,eating disorders and bipolar disorder rates. This suggests that anxiety, bipolar, and eating disorders are closely linked.
+
+4.  Drug deaths are positively correlated with schizophrenia (0.392), anxiety (0.250), bipolar disorder (0.168), and eating disorders (0.435). Drug deaths are associated with schizophrenia, anxiety, and eating disorders but not depression.
+
+5.  Suicide rates are weakly linked to depression but not strongly correlated with other disorders. Negative correlation with anxiety (-0.239) and bipolar disorder (-0.204), suggests that higher rates of these disorders might be linked to slightly lower suicide rates in this dataset.
+
+\vspace{2cm}
+
+\newpage
+
+### **6.2 Generalized Linear Modelling (Multivariate Analysis)**
+
+#### **6.2.1: Model 1: Relationship between mental health conditions, unemployment and suicide rates:**
+```{r,echo=FALSE}
+#clean if any NA left
+end_data<-na.omit(end_data)
+```
+
+```{r, echo=T, fig.align="center",message=FALSE, warning=FALSE}
+
+#GLM Model 1 with gaussian dist:
+gaussian_model <- glm(suiciderates ~ SchizophreniaRates + Depressive_DisorderRates + 
+                 Anxiety_DisorderRates + Bipolar_DisorderRates + Eating_DisorderRates + 
+                 unemployment,family=gaussian(link = "identity"), data = end_data)
+#GLM Model 1 with Gamma dist:
+gamma_model <- glm(suiciderates ~ SchizophreniaRates + Depressive_DisorderRates + 
+                 Anxiety_DisorderRates + Bipolar_DisorderRates + Eating_DisorderRates + 
+                 unemployment,family=Gamma(link = "log"), data = end_data)
+
+```
+```{r,echo=FALSE}
+#create table, take coeffs
+modelg_summary <- summary(gaussian_model)
+modelg_fixed <- modelg_summary$coefficients
+modelg_aic<-AIC(gaussian_model)
+
+# Convert to a data frame
+modelg_results <- data.frame(
+ Predictor = rownames(modelg_fixed),
+ Estimate = modelg_fixed[, 1],
+ Std_Error = modelg_fixed[, 2],
+ t_value = modelg_fixed[, 3],
+ p_value = modelg_fixed[,4]
+)
+modelg_results <- rbind(modelg_results, data.frame(
+  Predictor = "AIC",
+  Estimate = modelg_aic,
+  Std_Error = "",
+  t_value = "",
+  p_value = ""
+))
+
+
+# Print tables using kable for a nicely formatted output
+modelg_results %>%
+ kable("markdown", row.names = FALSE, caption = "Summary of GLM Gaussian Model 1 Results")  
+
+```
+
+```{r,echo=FALSE}
+modelga_summary <- summary(gamma_model)
+modelga_fixed <- modelga_summary$coefficients
+modelga_aic<-AIC(gamma_model)
+
+# Convert to a data frame
+modelga_results <- data.frame(
+ Predictor = rownames(modelga_fixed),
+ Estimate = modelga_fixed[, 1],
+ Std_Error = modelga_fixed[, 2],
+ t_value = modelga_fixed[, 3],
+ p_value = modelga_fixed[,4]
+)
+
+modelga_results <- rbind(modelga_results, data.frame(
+  Predictor = "AIC",
+  Estimate = modelga_aic,
+  Std_Error = "",
+  t_value = "",
+  p_value = ""
+))
+
+# Print tables using kable for a nicely formatted output
+modelga_results %>%
+ kable("markdown", row.names = FALSE, caption = "Summary of GLM Gamma Model 1 Results") 
+```
+
+
+```{r,fig.width=10,fig.height=4,echo=FALSE,message=FALSE, warning=FALSE}
+library(ggplot2)
+library(gridExtra)
+library(dplyr)
+
+# Calculate the total mental health disorder rates 
+end_data <- end_data %>%
+    mutate(total_mental_health = (SchizophreniaRates + Depressive_DisorderRates + Anxiety_DisorderRates + Bipolar_DisorderRates + Eating_DisorderRates) / 5)
+
+# Define color palette
+color_palette <- c("blue", "green", "red", "purple", "orange", "yellow")
+
+# Create the plots
+plot1 <- ggplot(end_data, aes(x = unemployment, y = suiciderates, color= Continent)) +
+  geom_point(alpha = 0.4) +
+  geom_smooth(method = "glm", method.args = list(family = "Gamma"), se = FALSE, color = "black") +
+  labs(title = "Effect of Unemployment on Suicide Rates (Gamma GLM)",
+       x = "Unemployment Rate",
+       y = "Suicide Rates") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 8, vjust = 1.5),
+    legend.text = element_text(size = 6),  # Smaller legend text
+    legend.key.size = unit(0.3, "cm")  # Smaller legend box
+  ) +
+  scale_color_manual(values = color_palette)
+
+common_theme <- theme_minimal() +
+  theme(
+    legend.position = "none",  # Hide legend for other plots
+    plot.title = element_text(size = 8, vjust = 1.5)  # Move title higher
+  )
+
+plot2 <- ggplot(end_data, aes(x = SchizophreniaRates, y = suiciderates, color = Continent)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "glm", method.args = list(family = "Gamma"), se = FALSE, color = "black") +
+  labs(title = "Effect of Schizophrenia on Suicide Deaths (Gamma GLM)",
+       x = "Schizophrenia Percentages",
+       y = "Suicide Rates") +
+  common_theme +
+  scale_color_manual(values = color_palette)
+
+plot3 <- ggplot(end_data, aes(x = Bipolar_DisorderRates, y = suiciderates, color = Continent)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "glm", method.args = list(family = "Gamma"), se = FALSE, color = "black") +
+  labs(title = "Effect of Bipolar Disorder on Suicide Rates(Gamma GLM)",
+       x = "Bipolar Disorder Percentages",
+       y = "Suicide Rates") +
+  common_theme +
+  scale_color_manual(values = color_palette)
+
+plot4 <- ggplot(end_data, aes(x = Anxiety_DisorderRates, y = suiciderates, color = Continent)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "glm", method.args = list(family = "Gamma"), se = FALSE, color = "black") +
+  labs(title = "Effect of Anxiety Disorders on Suicide Rates(Gamma GLM)",
+       x = "Anxiety Disorder Percentages",
+       y = "Suicide Rates") +
+  common_theme +
+  scale_color_manual(values = color_palette)
+
+plot5 <- ggplot(end_data, aes(x = Eating_DisorderRates, y = suiciderates, color = Continent)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "glm", method.args = list(family = "Gamma"), se = FALSE, color = "black") +
+  labs(title = "Effect of Eating Disorders on Suicide Rates (Gamma GLM)",
+       x = "Eating Disorder Percentages",
+       y = "Suicide Rates") +
+  common_theme +
+  scale_color_manual(values = color_palette)
+
+plot6 <- ggplot(end_data, aes(x = total_mental_health, y = suiciderates, color = Continent)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "glm", method.args = list(family = "Gamma"), se = FALSE, color = "black") +
+  labs(title = "Effect of Mean Mental Health Rates on Suicide Rates (Gamma GLM)", 
+       x = "Mean Mental Health Rates", 
+       y = "Suicide Rates") +
+  common_theme +
+  scale_color_manual(values = color_palette)
+
+# Arrange the plots in a grid
+grid.arrange(
+  plot1, 
+  plot2, 
+  plot3, 
+  plot4, 
+  plot5, 
+  plot6, 
+  ncol = 3, 
+  nrow = 2
+)
+```
+
+### **Description**
+
+These scatterplots show relationships between different mental health factors (schizophrenia, bipolar disorder, anxiety, eating disorders, and mean mental health) and suicide rates. Each point represents data from a country or region, colored by continent. Regression lines (black lines) suggest the overall trend of the relationship.
+
+
+#### **6.2.1.1 Checking Normality Assumptions and Model Selection:**
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+#deviance_ratio <- gamma_model$deviance / gamma_model$df.residual
+
+#compare AIC scores of two models
+AIC(gaussian_model, gamma_model)
+#residual plots
+par(mfrow=c(2,2))
+qqnorm(residuals(gamma_model),main="Residuals of gamma model")
+qqline(residuals(gamma_model),col="red")
+hist(residuals(gamma_model),col="springgreen",30)
+qqnorm(residuals(gaussian_model),main="Residuals of gaussian model")
+qqline(residuals(gaussian_model),col="red")
+hist(residuals(gaussian_model),col="springgreen",30)
+#pvalues<-c("0.02","0.004","0.002")
+#factor(hci_mh$Country.Name)
+#p.adjust(pvalues, method = "fdr", n = 8)
+#check residual plot, qqnorm, qqplot
+shapiro.test(gaussian_model[['residuals']])#not normal so we use gamma
+shapiro.test(gamma_model[['residuals']])#does not need to be normal so its ok
+
+#contrast(gamma_model)
+
+#c=update(model.lme1,.~.)
+#summary(c)
+#d=stepAIC(c)
+
+```
+
+### **Description:**
+
+**Residual plots (QQ plots):** These assess whether the residuals (errors) from two models (Gamma and Gaussian) follow a normal distribution.
+
+**Histograms of residuals:** These plots shows where the residuals are centered.
+
+**Shapiro Wilks Test:** This test checks whether the residuals follow a normal distribution.
+
+**AIC:** This score allows us to compare the two models.
+
+#### 6.2.2: **Model 2: Relationship between mental health conditions, unemployment and drug overdoses :**
+```{r,echo=FALSE}
+#adjust 0 values for gaussian:
+end_data$drugtot_adj <- end_data$drugtot + 1e-8
+
+```
+
+```{r,echo=TRUE}
+#  GLM model 2, gaussian dist.
+glm_model1 <- glm(drugtot_adj ~ SchizophreniaRates + Depressive_DisorderRates + 
+                 Anxiety_DisorderRates + Bipolar_DisorderRates + Eating_DisorderRates + 
+                 unemployment, 
+                 family = gaussian(link = "identity"), data = end_data)
+#GLM model 2 gaussian dist, log transform
+log_model1 <- glm(drugtot_adj ~ SchizophreniaRates + Depressive_DisorderRates + 
+                 Anxiety_DisorderRates + Bipolar_DisorderRates + Eating_DisorderRates + 
+                 unemployment, 
+                 family = gaussian(link = "log"), data = end_data)
+
+```
+```{r,echo=FALSE}
+#create a table, take coeffs
+model2g_summary <- summary(glm_model1)
+model2g_fixed <- model2g_summary$coefficients
+model2g_aic<-AIC(glm_model1)
+
+# Convert to a data frame
+model2g_results <- data.frame(
+ Predictor = rownames(model2g_fixed),
+ Estimate = model2g_fixed[, 1],
+ Std_Error = model2g_fixed[, 2],
+ t_value = model2g_fixed[, 3],
+ p_value = model2g_fixed[,4]
+)
+model2g_results <- rbind(model2g_results, data.frame(
+  Predictor = "AIC",
+  Estimate = model2g_aic,
+  Std_Error = "",
+  t_value = "",
+  p_value = ""
+))
+
+# Print tables using kable for a nicely formatted output
+model2g_results %>%
+ kable("markdown", row.names = FALSE, caption = "Summary of GLM Gaussian Model 2 Results") 
+```
+
+```{r,echo=FALSE}
+model2l_summary <- summary(log_model1)
+model2l_fixed <- model2l_summary$coefficients
+model2l_aic<-AIC(log_model1)
+
+# Convert to a data frame
+model2l_results <- data.frame(
+ Predictor = rownames(model2l_fixed),
+ Estimate = model2l_fixed[, 1],
+ Std_Error = model2l_fixed[, 2],
+ t_value = model2l_fixed[, 3],
+ p_value = model2l_fixed[,4]
+)
+model2l_results <- rbind(model2l_results, data.frame(
+  Predictor = "AIC",
+  Estimate = model2l_aic,
+  Std_Error = "",
+  t_value = "",
+  p_value = ""
+))
+
+# Print tables using kable for a nicely formatted output
+model2l_results %>%
+ kable("markdown", row.names = FALSE, caption = "Summary of GLM Log Model 2 Results") 
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE,fig.width = 10,fig.height = 6}
+
+library(ggplot2)
+library(gridExtra)
+library(cowplot)
+
+# Create the four plots, each without a legend
+p1 <- ggplot(data = end_data, aes(x = SchizophreniaRates, y = drugtot_adj, color = Continent)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "glm", method.args = list(family = "gaussian"),
+              se = FALSE, color = "black") +
+  labs(
+    title = "Effect of Schizophrenia on Drug Overdoses GLM (identity)",  
+    x = "Schizophrenia Percentages", 
+    y = "Drug Overdoses"
+  ) + theme_minimal() +
+  theme( plot.title = element_text(size = 8, vjust = 1.5),
+    legend.text = element_text(size = 6),  # Smaller legend text
+    legend.key.size = unit(0.3, "cm")) +
+  scale_color_manual(values = c("blue", "green", "red", "purple", "orange", "yellow"))
+
+p2 <- ggplot(data = end_data, aes(x = Bipolar_DisorderRates, y = drugtot_adj, color = Continent)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "glm", method.args = list(family = "gaussian"), se = FALSE, color = "black") +
+  labs(
+    title = "Effect of Bipolar D. on Drug Overdoses GLM (identity)",  
+    x = "Bipolar Rates", 
+    y = "Drug Overdoses"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none", plot.title = element_text(size = 8, vjust = 1.5),
+    legend.text = element_text(size = 6),  # Smaller legend text
+    legend.key.size = unit(0.3, "cm")) +
+  scale_color_manual(values = c("blue", "green", "red", "purple", "orange", "yellow"))
+
+p3 <- ggplot(data = end_data, aes(x = Eating_DisorderRates, y = drugtot_adj, color = Continent)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "glm", method.args = list(family = "gaussian"), se = FALSE, color = "black") +
+  labs(
+    title = "Effect of Eating D. on Drug Overdoses GLM (identity)",  
+    x = "Eating D.", 
+    y = "Drug Overdoses"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none", plot.title = element_text(size = 8, vjust = 1.5),
+    legend.text = element_text(size = 6),  # Smaller legend text
+    legend.key.size = unit(0.3, "cm")) +
+  scale_color_manual(values = c("blue", "green", "red", "purple", "orange", "yellow"))
+
+p4 <- ggplot(data = end_data, aes(x = unemployment, y = drugtot_adj, color = Continent)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "glm", method.args = list(family = "gaussian"), se = FALSE, color = "black") +
+  labs(
+    title = "Effect of Unemployment on Drug Overdoses GLM (identity)",  
+    x = "Unemployment", 
+    y = "Drug Overdoses"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none", plot.title = element_text(size = 8, vjust = 1.5),
+    legend.text = element_text(size = 6),  # Smaller legend text
+    legend.key.size = unit(0.3, "cm")) +
+  scale_color_manual(values = c("blue", "green", "red", "purple", "orange", "yellow"))
+
+# Get the legend from one of the plots (p1, p2, p3, or p4)
+# Arrange the four plots and add the color legend at the bottom
+grid.arrange(
+  p1, 
+  p2 + theme(legend.position = "none"), 
+  p3 + theme(legend.position = "none"), 
+  p4 + theme(legend.position = "none"), 
+  ncol = 2, 
+  nrow = 2)
+```
+
+### **Description**
+
+These scatter plots illustrates the relationship between **total drug deaths** and **mental health disorders** using a multivariate Generalized Linear Model (GLM). Each point represents a data observation, color-coded by continent, showing how mental health rates vary with drug-related deaths across different regions.
+
+
+\vspace{1cm}
+
+#### **6.2.2.1 Checking Normality Assumptions and Model Selection:**
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+#residual plots:
+par(mfrow=c(2,2))
+qqnorm(residuals(glm_model1),main="Residuals of glm linear model")
+qqline(residuals(glm_model1),col="red")
+hist(residuals(glm_model1),col="springgreen",30)
+qqnorm(residuals(log_model1),main="Residuals of glm log model")
+qqline(residuals(log_model1),col="red")
+hist(residuals(log_model1),col="springgreen",30)
+#pvalues<-c("0.02","0.004","0.002")
+#factor(hci_mh$Country.Name)
+#p.adjust(pvalues, method = "fdr", n = 8)
+#check residual plot, qqnorm, qqplot
+shapiro.test(glm_model1[['residuals']])#normality test for linear
+shapiro.test(log_model1[['residuals']])#normality test for log
+
+AIC(glm_model1,log_model1)
+#c=update(model.lme1,.~.)
+#contrast(glm_model1)
+#summary(c)
+#d=stepAIC(c)
+
+```
+
+### **Decription**:
+
+**Residual plots (QQ plots):** These assess whether the residuals (errors) from two Gaussia models (Log and Linear) follow a normal distribution.
+
+**Histograms of residuals:** These plots shows where the residuals are centered.
+
+**Shapiro-Wilks Normality Test:** This test checks whether the residuals follow a normal distribution.
+
+**AIC:** This score allows us to compare the two models.
+
+### 6.2.3 **Generalized Linear Mixed Effects Model:**
+
+In this part, we wanted to control for random effects of country and year in our model.
+
+**Model 1:**
+
+```{r,echo=TRUE,message=FALSE,warning=FALSE}
+#GLMM model for drug overdose, control year,country
+model.lme1 <- glmer(drugtot_adj ~ SchizophreniaRates + Depressive_DisorderRates + 
+                 Anxiety_DisorderRates + Bipolar_DisorderRates + Eating_DisorderRates + 
+                 unemployment + (1 | Year) + (1 | Country.Name),data = end_data)
+
+```
+
+
+
+**Model 2:**
+
+```{r,echo=TRUE,message=FALSE,warning=FALSE}
+#GLMM Model for suicide rate, control year,country 
+model.lme2 <- glmer(suiciderates ~ SchizophreniaRates + Depressive_DisorderRates + 
+                 Anxiety_DisorderRates + Bipolar_DisorderRates + Eating_DisorderRates + 
+                 unemployment+ (1 |Year) 
+  + (1 | Country.Name),family=Gamma(link = "log"),
+        data = end_data)
+
+
+```
+
+
+
+```{r, echo=FALSE, fig.align="center"}
+
+#GLMM tables:
+# Extract fixed effect estimates from Model 1
+model1_summary <- summary(model.lme1)
+model1_fixed <- model1_summary$coefficients
+model1_aic<-AIC(model.lme1)
+
+# Convert to a data frame
+model1_results <- data.frame(
+ Predictor = rownames(model1_fixed),
+ Estimate = model1_fixed[, 1],
+ Std_Error = model1_fixed[, 2],
+ t_value = model1_fixed[, 3]
+)
+model1_results <- rbind(model1_results, data.frame(
+  Predictor = "AIC",
+  Estimate = model1_aic,
+  Std_Error = "",
+  t_value = ""
+))
+# Extract fixed effect estimates from Model 2
+model2_summary <- summary(model.lme2)
+model2_fixed <- model2_summary$coefficients
+model2_AIC<-AIC(model.lme2)
+ #Convert to a data frame
+model2_results <- data.frame(
+  Predictor = rownames(model2_fixed),
+  Estimate = model2_fixed[, 1],
+  Std_Error = model2_fixed[, 2],
+  t_value = model2_fixed[, 3],
+  p_value = model2_fixed[, 4]
+  )
+model2_results <- rbind(model2_results, data.frame(
+  Predictor = "AIC",
+  Estimate = model2_AIC,
+  Std_Error = "",
+  t_value = "",
+  p_value = ""
+))
+
+# Print tables using kable for a nicely formatted output
+model1_results %>%
+ kable("markdown", row.names = FALSE, caption = "Summary of LMM (drug deaths) Results")  
+
+print("Random Effects Table GLMM Model 1")
+random_effects1 <- VarCorr(model.lme1)
+# Print
+print(random_effects1, comp = c("Variance", "Std.Dev."))
+
+model2_results %>%
+  kable("markdown", row.names = FALSE, caption = "Summary of  GLMM-Gamma link (suicide rates)",align = "c")  # Use of kable()
+
+print("Random Effects Table GLMM Model 2")
+
+random_effects2 <- VarCorr(model.lme2)
+print(random_effects2,comp = c("Variance", "Std.Dev."))
+
+
+```
+## **7. Results**
+
+To evaluate the fit of our models, we use standard metrics:
+
+**p-values:** To determine the statistical significance of each predictor.
+
+**AIC:** to choose between models
+
+
+**Estimates**: direction and size of effects
+
+
+### 7.1 **GLM Model for suicide deaths:**
+
+-   All of the variables show a significant main effect on suicide rates (p value \< 0.05)
+
+1.  Depressive Disorder Rates have a positive and highly significant effect on suicide rates.
+
+2.  Anxiety and Bipolar Disorder Rates have a negative significant effect which is unexpected.
+
+3.  Eating Disorder Rates and Schizophrenia Rates have a strong positive effect on suicide rates.
+
+4.  Unemployment has a small but significant positive effect on suicide rates.
+
+**Residuals:**
+
+1.  Gamma model residuals appear closer to a straight line than the Gaussian model, suggesting the Gamma model is a better fit.
+
+2.  Gaussian model residuals deviate significantly, particularly in the tails. The Gaussian model histogram is also skewed and has extreme values, reinforcing that normality is violated.
+
+3.  Shapiro-Wilks test results confirm non-normality (p-values \< 2.2e-16), suggesting that a normal (Gaussian) assumption is inappropriate for modeling suicide rates.
+
+4.  Lower AIC score shows that Gamma distribution fits best to our data for the first model.
+
+5.  A log link means the effects of predictors are multiplicative rather than additive, making it more suitable for data with exponential trends.
+
+### 7.2 **GLM Model for total drug overdoses:**
+
+-   Except Anxiety Disorders and unemployment, all of the variables show a significant main effect on drug overdoses (p value \< 0.05)
+
+1.  Schizophrenia, Depression, and Eating Disorders are strong risk factors for drug overdose deaths. Higher rates of these disorders significantly increase drug overdose deaths.
+
+2.  Bipolar disorder appears to be linked with lower overdose rates which is unexpected.
+
+3.  Anxiety Disorder is only significant in the log model. This could suggest a non-linear relationship between anxiety and overdose rates.
+
+4.  Unemployment has little to no significant effect. This suggests that unemployment alone may not be a strong predictor of overdose deaths compared to mental health factors.
+
+**Residuals:**
+
+1.  Both models show deviation from normality, especially in the tails (indicating non-normal residuals).
+
+2.  The GLM linear model shows stronger deviations at both ends, suggesting it might not be a great fit. The GLM log model also deviates but appears slightly more constrained.
+
+3.  Both histograms are skewed, meaning residuals are not normally distributed. The linear model histogram has a wider spread and longer tail, implying higher variance.
+
+4.  The log model histogram is more concentrated around zero, suggesting that the log transformation might have helped reduce variance.
+
+5.  Shapiro Wilks Test shows, both models residuals are not normally distributed.
+
+6.  Gaussian linear model has lower AIC scores and for simplicity we prefer this model, however neither model fits the data perfectly in terms of normality.
+
+### 7.3 **Generalized Linear Mixed Effects Model (GLMM):**
+
+1.  Depression,schizophrenia and anxiety surprisingly show negative relationships with overdose rates.
+
+2.  Bipolar disorder is positively linked with overdoses and suicide rates, unlike in the previous models.
+
+3.  Unemployment have a negative but  no great effect on drug overdoses.
+
+4.  Country-level variation is high, meaning overdose rates and suicide rates differ greatly by country.
+
+5.  Depression & unemployment strongly increase suicide risk.
+
+6.  Schizophrenia and eating disorders show unexpected negative relationships with suicide rates.
+
+7.  Anxiety does not significantly impact suicide rates.
+
+**Residuals:**
+
+1.  GLMM Model 1 (Drug Overdose) has the lowest AIC (-72257.5), beating the GLMs. The variance from country and year effects suggests strong hierarchical structure, making GLMM a better fit.
+
+2.  Fixed effects in GLMM 1 reduce the residual variance and its extremely low.
+
+3.  Drug overdose rates vary significantly by country and year, making GLMM 1 preferable.
+
+4.  There is large variation across countries, implying that suicide rates differ significantly depending on national factors. There is some year-to-year variation, but it is relatively small.
+
+5.  In second GLMM model (suicide rates) residual variance is 3.36, which is moderate, suggesting that some factors affecting suicide rates are not captured in the model,and additional predictors may be needed.
+
+\vspace{2cm}
+
+## **8. Chapter of Choice**
+
+#### **Preprocessing of geospatial data and merging with our data:**
+
+The geospatial data comes from package "spData". After visual inspection we noticed that the country names of some were not same as with our merged data. Therefore, we renamed the countries that were not matching.Then we cleaned the NA values, also added years for 4 countries with missing years. Following this, we merged the data using sf package and saved as a .shp file.
+
+Please check the script, preprocessing_world for detailed code.
+
+You can access the interactive map Shiny app by clicking the link below:
+
+<i>Please be patient, sometimes it takes a bit of time to load the graph.</i>
+
+### <a href="https://irmakoz.shinyapps.io/shiny_app/" target="_blank"><b>Open the Interactive Map</b> </a>
+
+#### **Description:**
+
+The interactive world map visualizes the trends in all our variables from the year 2000 to 2019. Through this graph, user has full control over the visualizations and can explore the data freely. By hovering over countries, the user can perceive the percentages of the selected variable in the data in that specific country. Since we wanted to create a user friendly design, the colors used in the interactive map are color-blind friendly as well. To achieve this we have used "viridis" package.
+
+## **9. Summary and Conclusion**
+
+### **9.1 Summary**
+
+Above models examine the relationship between mental health disorders, unemployment, and both overdose deaths and suicide deaths across countries and years. The GLMM drug overdose model shows that bipolar disorder may increase overdose risk, while depression and anxiety unexpectedly show negative associations. Meanwhile, the GLMM suicide model indicates that depression, bipolar disorder, and unemployment significantly increase suicide rates, whereas schizophrenia and eating disorders show unexpected negative relationships. Both models highlight strong country-level variations, suggesting that additional factors may influence these outcomes.
+
+### **9.2 Conclusion**
+
+Our first hypothesis is partially supported, as depression, bipolar disorder, and unemployment positively associated with suicide rates, but schizophrenia and eating disorders unexpectedly showed negative relationships. Our second hypothesis received partial support as well, since bipolar disorder and eating disorders show a positive relationship with drug overdoses, but anxiety and depression have negative associations. In addition, unemployment does not significantly predict overdoses. Substantial country/continent-level variations suggests that contextual factors might also play a critical role in shaping these relationships.
+
+### **8.3 Study Challenges**
+
+Further refinement, including testing interactions and addressing potential multicollinearity, is needed to enhance the interpretation of our findings.
+
+The generative AI we primarily used for this study was **ChatGPT**. Right at the beginning, we faced difficulties converting the **Markdown file** into a **PDF**. Even after downloading **MiKTeX**, it still didn’t work. **ChatGPT** helped us resolve the issue. After changing the **latex_engine** to **xelatex** (at the head of the markdown file) and adding the following to the beginning of the **Markdown file**, the conversion finally worked. Furthermore, while creating the interactive map with **Shiny** app, the legends were misaligned. To solve this problem, we used **ChatGPT** to format the plots accurately.
+
+\vspace{6cm}
