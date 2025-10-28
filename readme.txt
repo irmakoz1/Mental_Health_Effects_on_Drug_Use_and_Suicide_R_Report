@@ -5,7 +5,7 @@ R bootcamp Report
 Irmak Ozarslan, Barbara Maier
 
 ------------------------------------------------
-Suicide is one of the greatest cause of mortality in our century. It depends on many factors however, how these factors interact is not well known.
+Suicide is one of the greatest cause of mortality. It depends on many factors however, how these factors interact is not well known.
 
 Some well known infleunces are mental health conditions such as depression, bipolarity and anxiety; unemployments and class struggles. 
 
