@@ -5,11 +5,11 @@ R bootcamp Report
 Irmak Ozarslan, Barbara Maier
 
 ------------------------------------------------
-Suicide is one of the greatest cause of mortality. It depends on many factors however, how these factors interact is not well known.
+More than 720 000 people die due to suicide every year. Suicide is the third leading cause of death among 15–29-year-olds (WHO, 2025). It depends on many factors however, the interaction between these factors is not well known.
 
-Some well known infleunces are mental health conditions such as depression, bipolarity and anxiety; unemployments and class struggles. 
+Some infleunces include mental health conditions such as depression, bipolarity and anxiety; and unemployments with class struggles. 
 
-In our analysis we wanted to explore all these factors and their interactions country-wise to get more insights about prevention strategies. 
+In this analysis we wanted to explore different factors and their interactions in a country-wise setting to get more insights about prevention strategies. 
 
 The interactive plot on countrywise data can be accessed here: https://irmakoz.shinyapps.io/shiny_app/ 
 
